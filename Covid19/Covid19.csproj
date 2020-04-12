@@ -407,7 +407,6 @@
     <Content Include="Content\bootstrap-4.0.0\docs\4.0\about\overview.md" />
     <Content Include="Content\bootstrap-4.0.0\docs\4.0\about\translations.md" />
     <Content Include="Content\bootstrap-4.0.0\docs\4.0\browser-bugs.md" />
-    <Content Include="Content\bootstrap-4.0.0\docs\4.0\components\alerts.md" />
     <Content Include="Content\bootstrap-4.0.0\docs\4.0\components\badge.md" />
     <Content Include="Content\bootstrap-4.0.0\docs\4.0\components\breadcrumb.md" />
     <Content Include="Content\bootstrap-4.0.0\docs\4.0\components\button-group.md" />
