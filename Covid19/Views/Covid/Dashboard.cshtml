@@ -1,0 +1,282 @@
+﻿@using Newtonsoft.Json
+@using Covid19.Models
+
+@model LabelsDTO
+
+@{
+    ViewBag.Title = "Home Page";
+}
+<div class="card-group col-lg-12">
+
+    <div class="card border-default mb-3 col-lg-4" style="max-width: 18rem;">
+        <div class="card-body text-primary">
+            <h2 class="card-title">1289</h2>
+            <h5 class="card-text">Casos confirmados</h5>
+        </div>
+    </div>
+
+    <div class="card border-default mb-3 col-lg-4" style="max-width: 18rem;">
+        <div class="card-body text-danger">
+            <h2 class="card-title">786</h2>
+            <h5 class="card-text">Óbitos</h5>
+        </div>
+    </div> 
+
+    <div class="card border-default mb-3 col-lg-4" style="max-width: 18rem;">
+        <div class="card-body text-default">
+            <h2 class="card-title">5,6%</h2>
+            <h5 class="card-text">Letalidade</h5>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="col-lg-12">
+    <button class="btn btn-default btn-success btn-sm" onclick="javascript:InicioSurto();" id="inicio-surto">Mostrar somente após início do surto</button>
+</div>
+
+
+
+
+
+<div class="col-lg-12 brasil border-default border">
+    <div class="btn-group btn-group-sm">
+        <button class="btn btn-default" id="isolado-brasil" onclick="javascript:AlternarModoGrafico(this,'brasil','IsoladoPorDia','');">Mostrar casos novos</button>
+        <button class="btn btn-info" id="acumulado-brasil" onclick="javascript:AlternarModoGrafico(this,'brasil','AcumuladoPorDia','');">Mostrar casos acumulados</button>
+    </div>
+    <figure class="highcharts-figure">
+        <div id="brasil"></div>
+    </figure>
+</div>
+
+<div class="col-lg-12 regiao border-default border">
+    <div class="col-lg-12">
+        <label class="h4">Filtrar regiões</label>
+
+
+        <a href="javascript:ClicarBotao(1, 'regiao')" id="todos-regiao">Todos</a>
+        <a href="javascript:ClicarBotao(0, 'regiao')" id="nenhum-regiao">Nenhum</a>
+
+        <div class="btn-group btn-group-sm row">
+            @foreach(string regiao in Model.Regioes)
+            {
+                <button class="btn btn-default btn-regiao" onclick="javascript:ClicarBotao('@regiao','regiao')" id="@regiao">@regiao</button>
+            }
+        </div>
+    </div>
+    <div class="btn-group btn-group-sm">
+        <button class="btn btn-default" id="isolado-regiao" onclick="javascript:AlternarModoGrafico(this,'regiao','IsoladoPorDiaRegiao','');">Mostrar casos novos</button>
+        <button class="btn btn-info" id="acumulado-regiao" onclick="javascript:AlternarModoGrafico(this,'regiao','AcumuladoPorDiaRegiao','');">Mostrar casos acumulados</button>
+    </div>
+    <div class="btn-group btn-group-sm">
+        <button class="btn btn-default" id="isolado-regiao-apresentacao" onclick="javascript:AlternarModoGrafico(this,'regiao','AcumuladoPorDia','-apresentacao');">Unificar estados e mostrar óbitos</button>
+        <button class="btn btn-info" id="acumulado-regiao-apresentacao" onclick="javascript:AlternarModoGrafico(this,'regiao','AcumuladoPorDiaRegiao','-apresentacao');">Separar estados e ocultar óbitos</button>
+    </div>
+    <figure class="highcharts-figure">
+        <div id="regiao"></div>
+    </figure>
+</div>
+
+<div class="col-lg-12 regiao border-default border">
+    <div class="col-lg-12">
+        <label class="h4">Filtrar estados</label>
+
+        <a href="javascript:ClicarBotao(1, 'uf')" id="todos-uf">Todos</a>
+        <a href="javascript:ClicarBotao(0, 'uf')" id="nenhum-uf">Nenhum</a>
+
+        <div class="btn-group btn-group-sm">
+            @foreach(string uf in Model.Estados)
+            {
+                <button class="btn btn-default btn-uf" onclick="javascript:ClicarBotao('@uf','uf')" id="@uf">@uf</button>
+            }
+        </div>
+    </div>
+
+    <div class="btn-group btn-group-sm">
+        <button class="btn btn-default" id="isolado-uf" onclick="javascript:AlternarModoGrafico(this,'uf','IsoladoPorDiaEstado','');">Mostrar casos novos</button>
+        <button class="btn btn-info" id="acumulado-uf" onclick="javascript:AlternarModoGrafico(this,'uf','AcumuladoPorDiaEstado','');">Mostrar casos acumulados</button>
+    </div>
+    <div class="btn-group btn-group-sm">
+        <button class="btn btn-default" id="isolado-uf-apresentacao" onclick="javascript:AlternarModoGrafico(this,'uf','AcumuladoPorDia','-apresentacao');">Unificar estados e mostrar óbitos</button>
+        <button class="btn btn-info" id="acumulado-uf-apresentacao" onclick="javascript:AlternarModoGrafico(this,'uf','AcumuladoPorDiaEstado','-apresentacao');">Separar estados e ocultar óbitos</button>
+    </div>
+    <figure class="highcharts-figure">
+        <div id="uf"></div>
+    </figure>
+</div>
+
+
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+<script src="https://kit.fontawesome.com/013fbb650d.js" crossorigin="anonymous"></script>
+<script>
+
+    window.onload = function () {
+        Recarregar();
+    };
+
+    var regiao;
+    var uf;
+    var modoGraficoRegiao = 'AcumuladoPorDiaRegiao';
+    var modoGraficoEstado = 'AcumuladoPorDiaEstado';
+
+    function ConfigurarLabels() {
+        regiao = '';
+        uf = '';
+
+        $('.btn-regiao.btn-primary').each((i, item) => {
+            regiao = regiao + $(item).attr('id') + ','
+        });
+
+        $('.btn-uf.btn-primary').each((i, item) => {
+            uf = uf + $(item).attr('id') + ','
+        });
+
+    }
+
+    function AlternarModoGrafico(element, area, funcao, complemento) {
+        debugger;
+        if ($(element).hasClass('btn-default')) {
+            $(element).removeClass('btn-default').addClass('btn-info');
+            if ($(element).attr('id') == 'isolado-' + area + complemento)
+                $('#acumulado-' + area + complemento).addClass('btn-default').removeClass('btn-info');
+            else
+                $('#isolado-' + area + complemento).addClass('btn-default').removeClass('btn-info');
+
+            var atributos;
+            if (area == 'regiao') {
+                modoGraficoRegiao = funcao;
+                atributos = { regiao: regiao };
+            }
+            if (area == 'uf') {
+                modoGraficoEstado = funcao;
+                atributos = { uf: uf };
+            }
+
+            ChamadaAjax(funcao, area, atributos);
+        }
+    }
+
+    function Recarregar() {
+        ConfigurarLabels();
+
+        ChamadaAjax('AcumuladoPorDia', 'brasil');
+        ChamadaAjax('AcumuladoPorDiaRegiao', 'regiao', { regiao: regiao });
+        ChamadaAjax('AcumuladoPorDiaEstado', 'uf', { uf: uf });
+
+
+    }
+
+    function ChamadaAjax(funcao, chartId, atributos) {
+        var baseEnvio = { chartMode: true, iniciosurto: $('#inicio-surto').hasClass('btn-success') };
+        jQuery.extend(baseEnvio, atributos);
+
+        $.ajax({
+            type: "GET",
+            url: '/Api/Estatisticas/' + funcao,
+            content: "application/json; charset=utf-8",
+            dataType: "json",
+            data: baseEnvio,
+            success: function (data) {
+                Highcharts.chart(chartId, data);
+            }
+        });
+    }
+
+    function VerGraficos(id) {
+        if ($('#' + id).hasClass('btn-info')) {
+            $('#' + id).removeClass('btn-info').addClass('btn-default');
+            $('.' + id).addClass('hidden-chart');
+            return;
+        }
+        else {
+            $('#' + id).removeClass('btn-default').addClass('btn-info');
+            $('.' + id).removeClass('hidden-chart');
+            return;
+        }
+    }
+
+
+    function InicioSurto() {
+        if ($('#inicio-surto').hasClass('btn-success')) {
+            $('#inicio-surto').removeClass('btn-success').addClass('btn-default');
+        }
+        else {
+            $('#inicio-surto').removeClass('btn-default').addClass('btn-success');
+        }
+        Recarregar();
+    }
+
+    function ClicarBotao(id, label) {
+
+        if (id == 1) {
+            $('.btn-' + label).removeClass('btn-default').addClass('btn-primary');
+        }
+        if (id == 0) {
+            $('.btn-' + label).removeClass('btn-primary').addClass('btn-default');
+        }
+
+        if ($('#' + id).hasClass('btn-primary')) {
+            $('#' + id).removeClass('btn-primary').addClass('btn-default');
+        }
+        else {
+            $('#' + id).removeClass('btn-default').addClass('btn-primary');
+        }
+
+        ConfigurarLabels();
+        if (label == 'regiao')
+            ChamadaAjax(modoGraficoRegiao, label, { regiao: regiao });
+        if (label == 'uf')
+            ChamadaAjax(modoGraficoEstado, label, { uf: uf });
+    }
+
+</script>
+
+
+<style>
+    .highcharts-figure, .highcharts-data-table table {
+        min-width: 360px;
+        max-width: 100%;
+        margin: 1em auto;
+    }
+
+    .hidden-chart {
+        display: none;
+    }
+
+    .highcharts-data-table table {
+        font-family: Verdana, sans-serif;
+        border-collapse: collapse;
+        border: 1px solid #EBEBEB;
+        margin: 10px auto;
+        text-align: center;
+        width: 100%;
+        max-width: 500px;
+    }
+
+    .highcharts-data-table caption {
+        padding: 1em 0;
+        font-size: 1.2em;
+        color: #555;
+    }
+
+    .highcharts-data-table th {
+        font-weight: 600;
+        padding: 0.5em;
+    }
+
+    .highcharts-data-table td, .highcharts-data-table th, .highcharts-data-table caption {
+        padding: 0.5em;
+    }
+
+    .highcharts-data-table thead tr, .highcharts-data-table tr:nth-child(even) {
+        background: #f8f8f8;
+    }
+
+    .highcharts-data-table tr:hover {
+        background: #f1f7ff;
+    }
+</style>
