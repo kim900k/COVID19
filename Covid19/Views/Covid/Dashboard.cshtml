@@ -10,21 +10,21 @@
 
     <div class="card border-default mb-3 col-lg-4" style="max-width: 18rem;">
         <div class="card-body text-primary">
-            <h2 class="card-title">1289</h2>
+            <h2 class="card-title" id="confirmados-geral">0</h2>
             <h5 class="card-text">Casos confirmados</h5>
         </div>
     </div>
 
     <div class="card border-default mb-3 col-lg-4" style="max-width: 18rem;">
         <div class="card-body text-danger">
-            <h2 class="card-title">786</h2>
+            <h2 class="card-title" id="obitos-geral">0</h2>
             <h5 class="card-text">Óbitos</h5>
         </div>
-    </div> 
+    </div>
 
     <div class="card border-default mb-3 col-lg-4" style="max-width: 18rem;">
         <div class="card-body text-default">
-            <h2 class="card-title">5,6%</h2>
+            <h2 class="card-title" id="letalidade-geral">0%</h2>
             <h5 class="card-text">Letalidade</h5>
         </div>
     </div>
@@ -115,6 +115,7 @@
 <script>
 
     window.onload = function () {
+        Tabelas();
         Recarregar();
     };
 
@@ -168,7 +169,49 @@
         ChamadaAjax('AcumuladoPorDiaEstado', 'uf', { uf: uf });
 
 
-    }
+        }
+
+
+        function Tabelas() {
+            TotalAcumulado();
+            TotalAcumuladoPorRegiao();
+            TotalAcumuladoPorEstado();
+        }
+        function TotalAcumulado() {
+            $.ajax({
+                type: "GET",
+                url: '/Api/Estatisticas/TotalAcumulado',
+                content: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+                    $('#confirmados-geral').text(data.Casos);
+                    $('#obitos-geral').text(data.Mortes);
+                    $('#letalidade-geral').text(((data.Mortes / data.Casos) * 100).toFixed(1) + '%');
+                }
+            });
+        }
+        function TotalAcumuladoPorRegiao() {
+            $.ajax({
+                type: "GET",
+                url: '/Api/Estatisticas/TotalAcumuladoPorRegiao',
+                content: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+
+                }
+            });
+        }
+        function TotalAcumuladoPorEstado() {
+            $.ajax({
+                type: "GET",
+                url: '/Api/Estatisticas/TotalAcumuladoPorEstado',
+                content: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+
+                }
+            });
+        }
 
     function ChamadaAjax(funcao, chartId, atributos) {
         var baseEnvio = { chartMode: true, iniciosurto: $('#inicio-surto').hasClass('btn-success') };
